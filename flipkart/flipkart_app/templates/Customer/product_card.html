@@ -1,0 +1,14 @@
+{# Save this as templates/components/product_card.html #}
+<div class="product-card">
+    <img src="{{ product.image.url|default:'/static/images/placeholder.jpg' }}" alt="{{ product.name }}" class="product-image">
+    <div class="product-info">
+        <h3>{{ product.name }}</h3>
+        <p class="price">${{ product.price|floatformat:2 }}</p>
+        <div class="product-actions">
+            <button class="btn btn-primary btn-sm" onclick="addToCart('{{ product.id }}')">Add to Cart</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="addToWishlist('{{ product.id }}')">
+                <i class="far fa-heart"></i>
+            </button>
+        </div>
+    </div>
+</div>
