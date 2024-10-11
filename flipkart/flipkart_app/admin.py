@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
     User, UserProfile, Customer, Seller, Category, Product, 
-    Cart, CartItem, Order, OrderItem, Review, WishlistItem
+    Cart, CartItem, Order, OrderItem, Review, WishlistItem, Registration
 )
 
 # Customizing the UserAdmin to display customer and seller status
@@ -133,3 +133,8 @@ class WishlistItemAdmin(admin.ModelAdmin):
     list_display = ('user', 'product', 'added_at')
     search_fields = ('user__username', 'product__name')
     list_filter = ('added_at',)
+
+@admin.register(Registration)
+class RegistrationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'first_name', 'last_name', 'email', 'date_registered')
+    search_fields = ('user__username', 'email')

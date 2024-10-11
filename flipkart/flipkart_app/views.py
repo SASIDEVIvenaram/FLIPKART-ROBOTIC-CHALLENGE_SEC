@@ -4,8 +4,10 @@ from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth import login, logout, authenticate
 from django.views.generic import ListView, DetailView
-from .models import Product, Category, Cart, CartItem, Order, OrderItem, Review, Seller, WishlistItem
+from .models import Product, Category, Cart, CartItem, Order, OrderItem, Review, Seller, WishlistItem, UserProfile
 from django.contrib.auth.models import User
+from .models import User  
+
 
 # Home Page (Product List)
 class HomeView(ListView):
@@ -45,6 +47,88 @@ class ProductDetailView(DetailView):
         return context
 
 
+# User Registration View (updated with additional fields)
+def user_register(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        phone_number = request.POST.get('phone_number')
+        address = request.POST.get('address')
+        city = request.POST.get('city')
+        state = request.POST.get('state')
+        pincode = request.POST.get('pincode')
+
+        # Check if passwords match
+        if password != confirm_password:
+            messages.error(request, 'Passwords do not match.')
+            return redirect('register')
+
+        # Check if the username or email already exists
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Username already exists.')
+            return redirect('register')
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email is already in use.')
+            return redirect('register')
+
+        # Create the user
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.first_name = first_name
+        user.last_name = last_name
+        user.save()
+
+        # Create the user profile
+        user_profile = UserProfile.objects.create(
+            user=user,
+            phone_number=phone_number,
+            address=address,
+            city=city,
+            state=state,
+            pincode=pincode,
+            user_type='customer'  # Assuming default user type is customer
+        )
+
+        messages.success(request, 'Registration successful! You can now log in.')
+        return redirect('login')
+
+    return render(request, 'flipkart_app/register.html')
+
+
+# User Login View (Simplified)
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect('home')
+        else:
+            messages.error(request, 'Invalid username or password.')
+            return redirect('login')
+
+    return render(request, 'flipkart_app/login.html')
+
+
+# User Logout View
+@login_required
+def user_logout(request):
+    logout(request)
+    return redirect('home')
+
+
+# View Cart
+@login_required
+def cart_detail(request):
+    cart = get_object_or_404(Cart, user=request.user)
+    return render(request, 'flipkart_app/cart.html', {'cart': cart})
+
+
 # Add Product to Cart
 @login_required
 def add_to_cart(request, product_id):
@@ -56,13 +140,6 @@ def add_to_cart(request, product_id):
         cart_item.save()
     messages.success(request, f'{product.name} added to cart.')
     return redirect('cart')
-
-
-# View Cart
-@login_required
-def cart_detail(request):
-    cart = get_object_or_404(Cart, user=request.user)
-    return render(request, 'flipkart_app/cart.html', {'cart': cart})
 
 
 # Update Cart Item (Increase/Decrease Quantity or Remove)
@@ -164,71 +241,6 @@ def profile(request):
     return render(request, 'flipkart_app/user_profile.html', {'profile': profile})
 
 
-# Seller Dashboard (Seller-side Order Management)
-@login_required
-def seller_dashboard(request):
-    if not request.user.is_seller:
-        messages.error(request, 'You do not have permission to view this page.')
-        return redirect('home')
-
-    seller = request.user.seller
-    # Fetch orders containing products sold by this seller
-    orders = Order.objects.filter(items__product__seller=seller).distinct()
-
-    return render(request, 'flipkart_app/seller_dashboard.html', {'orders': orders})
-
-
-# User Registration View (Simplified without forms)
-def user_register(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
-
-        if password != confirm_password:
-            messages.error(request, 'Passwords do not match.')
-            return redirect('register')
-
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists.')
-            return redirect('register')
-
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'Email is already in use.')
-            return redirect('register')
-
-        user = User.objects.create_user(username=username, email=email, password=password)
-        messages.success(request, 'Registration successful! You can now log in.')
-        return redirect('login')
-
-    return render(request, 'flipkart_app/register.html')
-
-
-# User Login View (Simplified)
-def user_login(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(username=username, password=password)
-
-        if user is not None:
-            login(request, user)
-            return redirect('home')
-        else:
-            messages.error(request, 'Invalid username or password.')
-            return redirect('login')
-
-    return render(request, 'flipkart_app/login.html')
-
-
-# User Logout View
-@login_required
-def user_logout(request):
-    logout(request)
-    return redirect('home')
-
-
 # Wishlist View
 @login_required
 def wishlist(request):
@@ -252,3 +264,18 @@ def remove_from_wishlist(request, product_id):
     WishlistItem.objects.filter(user=request.user, product=product).delete()
     messages.success(request, f'{product.name} removed from your wishlist.')
     return redirect('wishlist')
+
+
+# Seller Dashboard (Seller-side Order Management)
+@login_required
+def seller_dashboard(request):
+    if not request.user.is_seller:
+        messages.error(request, 'You do not have permission to view this page.')
+        return redirect('home')
+
+    seller = request.user.seller
+    # Fetch orders containing products sold by this seller
+    orders = Order.objects.filter(items__product__seller=seller).distinct()
+
+    return render(request, 'flipkart_app/seller_dashboard.html', {'orders': orders})
+
