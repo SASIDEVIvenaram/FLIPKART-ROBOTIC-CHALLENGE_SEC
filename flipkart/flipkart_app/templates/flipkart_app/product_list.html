@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}FlipIQ - Browse Products{% endblock %}
+
+{% block content %}
+    <div class="flex flex-col md:flex-row gap-6">
+        <!-- Filters Sidebar -->
+        <div class="w-full md:w-64 bg-white p-4 rounded-lg shadow-sm">
+            <h2 class="text-lg font-semibold mb-4">Filters</h2>
+            
+            <form method="get" action="{% url 'product_list' %}">
+                <!-- Category Filter -->
+                <div class="mb-4">
+                    <h3 class="font-medium mb-2">Categories</h3>
+                    {% for category in categories %}
+                    <div class="flex items-center mb-2">
+                        <input type="checkbox" name="category" value="{{ category.name }}" 
+                               id="cat_{{ category.id }}" 
+                               {% if category.name in request.GET.getlist('category') %}checked{% endif %}
+                               class="mr-2">
+                        <label for="cat_{{ category.id }}">{{ category.name }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Price Range Filter -->
+                <div class="mb-4">
+                    <h3 class="font-medium mb-2">Price Range</h3>
+                    <div class="flex gap-2">
+                        <input type="number" name="min_price" placeholder="Min" 
+                               value="{{ request.GET.min_price }}"
+                               class="w-1/2 p-2 border rounded">
+                        <input type="number" name="max_price" placeholder="Max" 
+                               value="{{ request.GET.max_price }}"
+                               class="w-1/2 p-2 border rounded">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition duration-300">
+                    Apply Filters
+                </button>
+            </form>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="flex-1">
+            <!-- Sort Options -->
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-2xl font-semibold">Products</h1>
+                <select name="sort" class="p-2 border rounded" onchange="this.form.submit()">
+                    <option value="">Sort by</option>
+                    <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>
+                        Price: Low to High
+                    </option>
+                    <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>
+                        Price: High to Low
+                    </option>
+                    <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>
+                        Newest First
+                    </option>
+                </select>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for product in products %}
+                <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition duration-300">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-48 object-cover rounded-t-lg">
+                    <div class="p-4">
+                        <h2 class="text-lg font-semibold mb-2">{{ product.name }}</h2>
+                        <p class="text-gray-600 mb-2 h-12 overflow-hidden">{{ product.description|truncatewords:15 }}</p>
+                        <div class="flex justify-between items-center mb-2">
+                            {% if product.discount_percentage > 0 %}
+                                <div>
+                                    <span class="text-lg font-semibold">${{ product.discounted_price }}</span>
+                                    <span class="text-sm text-gray-500 line-through ml-2">${{ product.price }}</span>
+                                </div>
+                                <span class="text-green-600 font-semibold">{{ product.discount_percentage }}% OFF</span>
+                            {% else %}
+                                <span class="text-lg font-semibold">${{ product.price }}</span>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'add_to_cart' product.id %}" class="block text-center bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300">
+                            Add to Cart
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full text-center py-8">
+                    <p class="text-gray-500 text-lg">No products found matching your criteria.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="mt-8 flex justify-center">
+                <div class="flex space-x-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1" class="px-3 py-1 border rounded hover:bg-gray-100">&laquo; First</a>
+                        <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-100">Previous</a>
+                    {% endif %}
+
+                    <span class="px-3 py-1 border rounded bg-blue-500 text-white">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-100">Next</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 border rounded hover:bg-gray-100">Last &raquo;</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
