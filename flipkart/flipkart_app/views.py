@@ -286,3 +286,61 @@ def seller_dashboard(request):
     orders = Order.objects.filter(items__product__seller=seller).distinct()
 
     return render(request, 'flipkart_app/seller_dashboard.html', {'orders': orders})
+
+# Home View to display categories and featured products
+def home(request):
+    categories = Category.objects.all()
+    featured_products = Product.objects.filter(is_featured=True)  # Filter for featured products
+    context = {
+        'categories': categories,
+        'featured_products': featured_products,
+    }
+    return render(request, 'flipkart_app/home.html', context)
+from django.core.paginator import Paginator
+def product_list(request):
+    categories = Category.objects.all()
+
+    # Filter products based on selected categories
+    selected_categories = request.GET.getlist('category')
+    products = Product.objects.all()
+    if selected_categories:
+        products = products.filter(category__name__in=selected_categories)
+
+    # Filter products based on price range
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    if min_price:
+        products = products.filter(price__gte=min_price)
+    if max_price:
+        products = products.filter(price__lte=max_price)
+
+    # Apply sorting
+    sort_by = request.GET.get('sort')
+    if sort_by == 'price_low':
+        products = products.order_by('price')
+    elif sort_by == 'price_high':
+        products = products.order_by('-price')
+    elif sort_by == 'newest':
+        products = products.order_by('-created_at')
+
+    # Paginate the products
+    paginator = Paginator(products, 9)  # 9 products per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Preserve filters during pagination
+    query_string = request.GET.copy()
+    if 'page' in query_string:
+        query_string.pop('page')
+    query_string = query_string.urlencode()
+
+    context = {
+        'categories': categories,
+        'products': page_obj,
+        'selected_categories': selected_categories,
+        'min_price': min_price,
+        'max_price': max_price,
+        'sort_by': sort_by,
+        'query_string': query_string
+    }
+    return render(request, 'flipkart_app/product_list.html', context)

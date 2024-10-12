@@ -80,12 +80,9 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField()
     image = models.ImageField(upload_to='product_images/')
+    is_packed = models.BooleanField(default=False)  # This distinguishes packed vs unpacked products
     is_featured = models.BooleanField(default=False)
-    discount_percentage = models.PositiveIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(100)], default=0
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    discount_percentage = models.PositiveIntegerField(default=0)
 
     def discounted_price(self):
         """Calculates the discounted price based on discount percentage."""
@@ -95,7 +92,7 @@ class Product(models.Model):
         return self.price
 
     def __str__(self):
-        return f"{self.name} - by {self.seller.company_name}"
+        return f"{self.name} - {self.category.name}"
 
 
 # Cart Model

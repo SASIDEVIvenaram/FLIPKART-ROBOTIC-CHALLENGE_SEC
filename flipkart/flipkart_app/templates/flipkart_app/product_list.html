@@ -16,7 +16,7 @@
                     <div class="flex items-center mb-2">
                         <input type="checkbox" name="category" value="{{ category.name }}" 
                                id="cat_{{ category.id }}" 
-                               {% if category.name in request.GET.getlist('category') %}checked{% endif %}
+                               {% if category.name in selected_categories %}checked{% endif %}
                                class="mr-2">
                         <label for="cat_{{ category.id }}">{{ category.name }}</label>
                     </div>
@@ -28,10 +28,10 @@
                     <h3 class="font-medium mb-2">Price Range</h3>
                     <div class="flex gap-2">
                         <input type="number" name="min_price" placeholder="Min" 
-                               value="{{ request.GET.min_price }}"
+                               value="{{ min_price }}"
                                class="w-1/2 p-2 border rounded">
                         <input type="number" name="max_price" placeholder="Max" 
-                               value="{{ request.GET.max_price }}"
+                               value="{{ max_price }}"
                                class="w-1/2 p-2 border rounded">
                     </div>
                 </div>
@@ -41,13 +41,13 @@
                     <h3 class="font-medium mb-2">Sort by</h3>
                     <select name="sort" class="w-full p-2 border rounded">
                         <option value="">Select</option>
-                        <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>
+                        <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>
                             Price: Low to High
                         </option>
-                        <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>
+                        <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>
                             Price: High to Low
                         </option>
-                        <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>
+                        <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>
                             Newest First
                         </option>
                     </select>
@@ -96,18 +96,18 @@
             {% if is_paginated %}
             <div class="mt-8 flex justify-center">
                 <div class="flex space-x-2">
-                    {% if page_obj.has_previous %}
-                        <a href="?{% query_string request 'page=1' %}" class="px-3 py-1 border rounded hover:bg-gray-100">&laquo; First</a>
-                        <a href="?{% query_string request 'page=' page_obj.previous_page_number %}" class="px-3 py-1 border rounded hover:bg-gray-100">Previous</a>
+                    {% if products.has_previous %}
+                        <a href="?page=1&{{ query_string }}" class="px-3 py-1 border rounded hover:bg-gray-100">&laquo; First</a>
+                        <a href="?page={{ products.previous_page_number }}&{{ query_string }}" class="px-3 py-1 border rounded hover:bg-gray-100">Previous</a>
                     {% endif %}
 
                     <span class="px-3 py-1 border rounded bg-blue-500 text-white">
-                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        Page {{ products.number }} of {{ products.paginator.num_pages }}
                     </span>
 
-                    {% if page_obj.has_next %}
-                        <a href="?{% query_string request 'page=' page_obj.next_page_number %}" class="px-3 py-1 border rounded hover:bg-gray-100">Next</a>
-                        <a href="?{% query_string request 'page=' page_obj.paginator.num_pages %}" class="px-3 py-1 border rounded hover:bg-gray-100">Last &raquo;</a>
+                    {% if products.has_next %}
+                        <a href="?page={{ products.next_page_number }}&{{ query_string }}" class="px-3 py-1 border rounded hover:bg-gray-100">Next</a>
+                        <a href="?page={{ products.paginator.num_pages }}&{{ query_string }}" class="px-3 py-1 border rounded hover:bg-gray-100">Last &raquo;</a>
                     {% endif %}
                 </div>
             </div>
