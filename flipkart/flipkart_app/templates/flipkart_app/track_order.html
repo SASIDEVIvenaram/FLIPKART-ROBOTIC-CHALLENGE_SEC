@@ -7,7 +7,6 @@
         <h1 class="text-2xl font-semibold mb-6">Track Order #{{ order.id }}</h1>
         <p>Order Status: <strong>{{ order.status|title }}</strong></p>
 
-        <!-- You can add more details about the shipping and tracking process -->
         {% if order.status == 'delivered' %}
             <p>Your order has been delivered on {{ order.updated_at|date:"F d, Y" }}.</p>
         {% else %}

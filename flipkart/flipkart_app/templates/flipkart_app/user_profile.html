@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
-        <!-- Profile Header -->
+
         <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
             <div class="flex items-center space-x-4">
                 <div class="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
@@ -31,11 +31,9 @@
             </div>
         </div>
 
-        <!-- Profile Content -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Main Content -->
             <div class="col-span-2">
-                <!-- Personal Information -->
+
                 <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                     <h2 class="text-xl font-semibold mb-4">Personal Information</h2>
                     <div class="grid grid-cols-2 gap-4">
@@ -58,7 +56,6 @@
                     </div>
                 </div>
 
-                <!-- Address Information -->
                 <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                     <h2 class="text-xl font-semibold mb-4">Address</h2>
                     <p class="text-gray-800">{{ user_profile.address }}</p>
@@ -66,7 +63,7 @@
                 </div>
 
                 {% if user_profile.user_type == 'seller' %}
-                    <!-- Seller Information -->
+
                     <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                         <h2 class="text-xl font-semibold mb-4">Seller Information</h2>
                         <div class="grid grid-cols-2 gap-4">
@@ -81,7 +78,6 @@
                         </div>
                     </div>
 
-                    <!-- Products -->
                     <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-xl font-semibold">Your Products</h2>
@@ -105,10 +101,10 @@
                 {% endif %}
             </div>
 
-            <!-- Sidebar -->
+
             <div class="col-span-1">
                 {% if user_profile.user_type == 'customer' %}
-                    <!-- Loyalty Points -->
+
                     <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                         <h2 class="text-xl font-semibold mb-2">Loyalty Points</h2>
                         <div class="text-3xl font-bold text-blue-500">{{ customer.loyalty_points }}</div>
@@ -116,7 +112,7 @@
                     </div>
                 {% endif %}
 
-                <!-- Recent Orders -->
+
                 <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                     <h2 class="text-xl font-semibold mb-4">Recent Orders</h2>
                     {% for order in user.order_set.all|slice:":5" %}
@@ -135,7 +131,6 @@
                     {% endfor %}
                 </div>
 
-                <!-- Recent Reviews -->
                 <div class="bg-white rounded-lg shadow-sm p-6">
                     <h2 class="text-xl font-semibold mb-4">Your Reviews</h2>
                     {% for review in user.review_set.all|slice:":3" %}

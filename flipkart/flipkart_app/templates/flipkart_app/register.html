@@ -22,11 +22,9 @@
                 </p>
             </div>
             
-            <!-- Registration Form -->
             <form class="mt-8 space-y-6" action="{% url 'register' %}" method="POST">
                 {% csrf_token %}
-                
-                <!-- User Type -->
+
                 <div>
                     <label for="user_type" class="sr-only">User Type</label>
                     <select id="user_type" name="user_type" required
@@ -36,7 +34,6 @@
                     </select>
                 </div>
 
-                <!-- Username -->
                 <div>
                     <label for="username" class="sr-only">Username</label>
                     <input id="username" name="username" type="text" required 
@@ -44,7 +41,6 @@
                            placeholder="Username">
                 </div>
 
-                <!-- Email -->
                 <div>
                     <label for="email" class="sr-only">Email address</label>
                     <input id="email" name="email" type="email" required 
@@ -52,7 +48,6 @@
                            placeholder="Email address">
                 </div>
 
-                <!-- First Name -->
                 <div>
                     <label for="first_name" class="sr-only">First Name</label>
                     <input id="first_name" name="first_name" type="text" required
@@ -60,7 +55,6 @@
                            placeholder="First Name">
                 </div>
 
-                <!-- Last Name -->
                 <div>
                     <label for="last_name" class="sr-only">Last Name</label>
                     <input id="last_name" name="last_name" type="text" required 
@@ -68,7 +62,6 @@
                            placeholder="Last Name">
                 </div>
 
-                <!-- Password -->
                 <div>
                     <label for="password" class="sr-only">Password</label>
                     <input id="password" name="password" type="password" required minlength="8"
@@ -76,7 +69,6 @@
                            placeholder="Password">
                 </div>
 
-                <!-- Confirm Password -->
                 <div>
                     <label for="confirm_password" class="sr-only">Confirm Password</label>
                     <input id="confirm_password" name="confirm_password" type="password" required minlength="8"
@@ -84,7 +76,6 @@
                            placeholder="Confirm Password">
                 </div>
 
-                <!-- Phone Number -->
                 <div>
                     <label for="phone_number" class="sr-only">Phone Number</label>
                     <input id="phone_number" name="phone_number" type="tel" required
@@ -93,7 +84,6 @@
                            placeholder="Phone Number (10 digits)">
                 </div>
 
-                <!-- Address -->
                 <div>
                     <label for="address" class="sr-only">Address</label>
                     <textarea id="address" name="address" rows="3" required
@@ -101,7 +91,6 @@
                               placeholder="Address"></textarea>
                 </div>
 
-                <!-- City -->
                 <div>
                     <label for="city" class="sr-only">City</label>
                     <input id="city" name="city" type="text" required
@@ -109,7 +98,6 @@
                            placeholder="City">
                 </div>
 
-                <!-- State -->
                 <div>
                     <label for="state" class="sr-only">State</label>
                     <input id="state" name="state" type="text" required
@@ -117,7 +105,6 @@
                            placeholder="State">
                 </div>
 
-                <!-- Pincode -->
                 <div>
                     <label for="pincode" class="sr-only">Pincode</label>
                     <input id="pincode" name="pincode" type="text" required minlength="6" maxlength="6"
@@ -125,7 +112,6 @@
                            placeholder="Pincode (6 digits)">
                 </div>
 
-                <!-- Display error messages, if any -->
                 {% if messages %}
                     {% for message in messages %}
                         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
@@ -134,7 +120,6 @@
                     {% endfor %}
                 {% endif %}
 
-                <!-- Submit Button -->
                 <div>
                     <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         Register

@@ -7,7 +7,6 @@ from django.views.generic import ListView, DetailView
 from .models import Product, Category, Cart, CartItem, Order, OrderItem, Review, Seller, WishlistItem, UserProfile, User
 
 
-# Home Page (Product List)
 class HomeView(ListView):
     model = Product
     template_name = 'flipkart_app/home.html'
@@ -29,8 +28,6 @@ class HomeView(ListView):
         context['categories'] = Category.objects.all()
         return context
 
-
-# Product Detail View
 class ProductDetailView(DetailView):
     model = Product
     template_name = 'flipkart_app/product_detail.html'
@@ -44,8 +41,6 @@ class ProductDetailView(DetailView):
         context['reviews'] = Review.objects.filter(product=self.object)
         return context
 
-
-# User Registration View
 def user_register(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -59,14 +54,12 @@ def user_register(request):
         city = request.POST.get('city')
         state = request.POST.get('state')
         pincode = request.POST.get('pincode')
-        user_type = request.POST.get('user_type')  # 'customer' or 'seller'
+        user_type = request.POST.get('user_type')  
 
-        # Check if passwords match
         if password != confirm_password:
             messages.error(request, 'Passwords do not match.')
             return redirect('register')
 
-        # Check if the username or email already exists
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username already exists.')
             return redirect('register')
@@ -74,7 +67,6 @@ def user_register(request):
             messages.error(request, 'Email is already in use.')
             return redirect('register')
 
-        # Create the user
         user = User.objects.create_user(username=username, email=email, password=password)
         user.first_name = first_name
         user.last_name = last_name
@@ -82,7 +74,6 @@ def user_register(request):
         user.is_seller = True if user_type == 'seller' else False
         user.save()
 
-        # Create the user profile and set the user_type
         user_profile = UserProfile.objects.create(
             user=user,
             phone_number=phone_number,
@@ -102,7 +93,6 @@ def user_register(request):
     return render(request, 'flipkart_app/register.html')
 
 
-# User Login View (Supports role-based redirection)
 def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -111,35 +101,27 @@ def user_login(request):
 
         if user is not None:
             login(request, user)
-            # Redirect based on role
             if user.is_seller:
-                return redirect('seller_dashboard')  # Redirect to seller dashboard
+                return redirect('seller_dashboard') 
             else:
-                return redirect('home')  # Redirect to customer profile
+                return redirect('home') 
         else:
             messages.error(request, 'Invalid username or password.')
             return redirect('login')
 
     return render(request, 'flipkart_app/login.html')
 
-
-# User Logout View
 @login_required
 def user_logout(request):
     logout(request)
     return redirect('login')
 
-
-# View Cart
 @login_required
 def cart_detail(request):
-    # Try to get the cart for the logged-in user, or create a new one if it doesn't exist
     cart, created = Cart.objects.get_or_create(user=request.user)
     if created:
-        # If a new cart was created, it will be empty
         cart_items = []
     else:
-        # Get all items in the cart
         cart_items = cart.items.all()
         
     context = {
@@ -149,8 +131,6 @@ def cart_detail(request):
     
     return render(request, 'flipkart_app/cart.html', context)
 
-
-# Add Product to Cart
 @login_required
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -162,8 +142,6 @@ def add_to_cart(request, product_id):
     messages.success(request, f'{product.name} added to cart.')
     return redirect('cart')
 
-
-# Update Cart Item (Increase/Decrease Quantity or Remove)
 @login_required
 def update_cart(request, item_id):
     cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
@@ -182,7 +160,6 @@ def update_cart(request, item_id):
     return redirect('cart')
 
 
-# Checkout View
 @login_required
 def checkout(request):
     cart = get_object_or_404(Cart, user=request.user)
@@ -197,8 +174,7 @@ def checkout(request):
         if not shipping_address or not phone_number or not payment_method:
             messages.error(request, 'Please fill in all required fields.')
             return redirect('checkout')
-
-        # Create the order
+        
         order = Order.objects.create(
             user=request.user,
             shipping_address=shipping_address,
@@ -207,7 +183,6 @@ def checkout(request):
             total_amount=cart.get_total()
         )
 
-        # Move cart items to order items
         for item in cart.items.all():
             OrderItem.objects.create(
                 order=order,
@@ -216,29 +191,22 @@ def checkout(request):
                 price=item.product.discounted_price(),
             )
 
-        # Clear the cart
         cart.items.all().delete()
 
         return redirect('order_confirmation', order_id=order.id)
 
     return render(request, 'flipkart_app/checkout.html', {'cart': cart})
 
-
-# Order Confirmation View
 @login_required
 def order_confirmation(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     return render(request, 'flipkart_app/order_confirmation.html', {'order': order})
 
-
-# Order History (Customer)
 @login_required
 def order_history(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'flipkart_app/order_history.html', {'orders': orders})
 
-
-# User Profile View (Customer)
 @login_required
 def profile(request):
     profile = request.user.profile
@@ -261,15 +229,11 @@ def profile(request):
             messages.error(request, 'Please fill in all fields.')
     return render(request, 'flipkart_app/user_profile.html', {'profile': profile})
 
-
-# Wishlist View
 @login_required
 def wishlist(request):
     wishlist_items = WishlistItem.objects.filter(user=request.user)
     return render(request, 'flipkart_app/wishlist.html', {'wishlist_items': wishlist_items})
 
-
-# Add to Wishlist
 @login_required
 def add_to_wishlist(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -277,8 +241,6 @@ def add_to_wishlist(request, product_id):
     messages.success(request, f'{product.name} added to your wishlist.')
     return redirect('wishlist')
 
-
-# Remove from Wishlist
 @login_required
 def remove_from_wishlist(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -286,8 +248,6 @@ def remove_from_wishlist(request, product_id):
     messages.success(request, f'{product.name} removed from your wishlist.')
     return redirect('wishlist')
 
-
-# Seller Dashboard (Seller-side Order Management)
 @login_required
 def seller_dashboard(request):
     if not request.user.is_seller:
@@ -295,15 +255,13 @@ def seller_dashboard(request):
         return redirect('home')
 
     seller = request.user.seller
-    # Fetch orders containing products sold by this seller
     orders = Order.objects.filter(items__product__seller=seller).distinct()
 
     return render(request, 'flipkart_app/seller_dashboard.html', {'orders': orders})
 
-# Home View to display categories and featured products
 def home(request):
     categories = Category.objects.all()
-    featured_products = Product.objects.filter(is_featured=True)  # Filter for featured products
+    featured_products = Product.objects.filter(is_featured=True)  
     context = {
         'categories': categories,
         'featured_products': featured_products,
@@ -313,13 +271,11 @@ from django.core.paginator import Paginator
 def product_list(request):
     categories = Category.objects.all()
 
-    # Filter products based on selected categories
     selected_categories = request.GET.getlist('category')
     products = Product.objects.all()
     if selected_categories:
         products = products.filter(category__name__in=selected_categories)
 
-    # Filter products based on price range
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
     if min_price:
@@ -327,7 +283,6 @@ def product_list(request):
     if max_price:
         products = products.filter(price__lte=max_price)
 
-    # Apply sorting
     sort_by = request.GET.get('sort')
     if sort_by == 'price_low':
         products = products.order_by('price')
@@ -336,12 +291,9 @@ def product_list(request):
     elif sort_by == 'newest':
         products = products.order_by('-created_at')
 
-    # Paginate the products
-    paginator = Paginator(products, 9)  # 9 products per page
+    paginator = Paginator(products, 9)  
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
-    # Preserve filters during pagination
     query_string = request.GET.copy()
     if 'page' in query_string:
         query_string.pop('page')
@@ -360,28 +312,21 @@ def product_list(request):
 
 
 def track_order(request, order_id):
-    # Fetch the order based on the ID and user
     order = get_object_or_404(Order, id=order_id, user=request.user)
-
-    # In this view, you can pass information related to the order's delivery status
     context = {
         'order': order,
-        # You can add more tracking data, like order status, delivery date, etc.
     }
     return render(request, 'flipkart_app/track_order.html', context)
 
 @login_required
 def cancel_order(request, order_id):
-    # Get the order by ID and ensure the user is the owner
     order = get_object_or_404(Order, id=order_id, user=request.user)
 
-    # Only allow cancellation if the order is not yet delivered or cancelled
     if order.status in ['delivered', 'cancelled']:
         messages.error(request, 'You cannot cancel a delivered or already cancelled order.')
     else:
-        # Set the status to 'cancelled'
         order.status = 'cancelled'
         order.save()
         messages.success(request, 'Your order has been cancelled.')
 
-    return redirect('order_history')  # Redirect back to the order history page
+    return redirect('order_history')  

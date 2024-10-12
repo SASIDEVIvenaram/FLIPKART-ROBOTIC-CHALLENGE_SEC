@@ -10,7 +10,6 @@
         <div class="space-y-8">
             {% for order in orders %}
                 <div class="bg-white p-6 rounded-lg shadow-sm">
-                    <!-- Order Summary -->
                     <div class="flex justify-between items-center">
                         <div>
                             <h2 class="text-xl font-semibold">Order #{{ order.id }}</h2>
@@ -26,8 +25,6 @@
                             <a href="{% url 'track_order' order.id %}" class="text-blue-500 hover:text-blue-600 transition duration-300">Track Order</a>
                         </div>
                     </div>
-
-                    <!-- Order Items -->
                     <div class="mt-4">
                         <h3 class="font-semibold text-lg">Items:</h3>
                         <ul class="space-y-2 mt-2">
@@ -45,8 +42,6 @@
                             {% endfor %}
                         </ul>
                     </div>
-
-                    <!-- Cancel Order Button (Only if the order is pending) -->
                     {% if order.status == 'pending' %}
                         <div class="mt-4 text-right">
                             <form action="{% url 'cancel_order' order.id %}" method="post">

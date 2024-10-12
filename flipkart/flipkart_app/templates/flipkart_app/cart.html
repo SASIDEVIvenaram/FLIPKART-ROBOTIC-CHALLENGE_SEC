@@ -8,7 +8,6 @@
 
     {% if cart.items.all %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Cart Items -->
             <div>
                 <div class="bg-white shadow-sm rounded-lg p-4">
                     <h2 class="text-lg font-semibold mb-4">Items in Your Cart</h2>
@@ -16,7 +15,6 @@
                     <ul class="space-y-4">
                         {% for item in cart.items.all %}
                             <li class="flex items-center justify-between">
-                                <!-- Product Image -->
                                 <div class="flex items-center space-x-4">
                                     <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-16 h-16 rounded-lg object-cover">
                                     <div>
@@ -25,8 +23,6 @@
                                         <p class="text-sm text-gray-600">Total: ${{ item.get_subtotal }}</p>
                                     </div>
                                 </div>
-
-                                <!-- Quantity Control -->
                                 <div class="flex items-center space-x-2">
                                     <form action="{% url 'update_cart' item.id %}" method="post">
                                         {% csrf_token %}
@@ -40,8 +36,6 @@
                                         <button class="bg-gray-300 text-gray-800 px-2 py-1 rounded-lg">+</button>
                                     </form>
                                 </div>
-
-                                <!-- Remove Item -->
                                 <form action="{% url 'update_cart' item.id %}" method="post">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="remove">
@@ -52,8 +46,6 @@
                     </ul>
                 </div>
             </div>
-
-            <!-- Cart Summary -->
             <div class="bg-white shadow-sm rounded-lg p-4">
                 <h2 class="text-lg font-semibold mb-4">Cart Summary</h2>
 
