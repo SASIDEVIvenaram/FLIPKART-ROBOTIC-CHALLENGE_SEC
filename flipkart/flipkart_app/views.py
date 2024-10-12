@@ -133,8 +133,21 @@ def user_logout(request):
 # View Cart
 @login_required
 def cart_detail(request):
-    cart = get_object_or_404(Cart, user=request.user)
-    return render(request, 'flipkart_app/cart.html', {'cart': cart})
+    # Try to get the cart for the logged-in user, or create a new one if it doesn't exist
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    if created:
+        # If a new cart was created, it will be empty
+        cart_items = []
+    else:
+        # Get all items in the cart
+        cart_items = cart.items.all()
+        
+    context = {
+        'cart': cart,
+        'cart_items': cart_items,
+    }
+    
+    return render(request, 'flipkart_app/cart.html', context)
 
 
 # Add Product to Cart
@@ -344,3 +357,31 @@ def product_list(request):
         'query_string': query_string
     }
     return render(request, 'flipkart_app/product_list.html', context)
+
+
+def track_order(request, order_id):
+    # Fetch the order based on the ID and user
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+
+    # In this view, you can pass information related to the order's delivery status
+    context = {
+        'order': order,
+        # You can add more tracking data, like order status, delivery date, etc.
+    }
+    return render(request, 'flipkart_app/track_order.html', context)
+
+@login_required
+def cancel_order(request, order_id):
+    # Get the order by ID and ensure the user is the owner
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+
+    # Only allow cancellation if the order is not yet delivered or cancelled
+    if order.status in ['delivered', 'cancelled']:
+        messages.error(request, 'You cannot cancel a delivered or already cancelled order.')
+    else:
+        # Set the status to 'cancelled'
+        order.status = 'cancelled'
+        order.save()
+        messages.success(request, 'Your order has been cancelled.')
+
+    return redirect('order_history')  # Redirect back to the order history page
