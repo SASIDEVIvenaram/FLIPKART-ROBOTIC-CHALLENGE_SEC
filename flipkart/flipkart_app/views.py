@@ -4,9 +4,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth import login, logout, authenticate
 from django.views.generic import ListView, DetailView
-from .models import Product, Category, Cart, CartItem, Order, OrderItem, Review, Seller, WishlistItem, UserProfile
-from django.contrib.auth.models import User
-from .models import User  
+from .models import Product, Category, Cart, CartItem, Order, OrderItem, Review, Seller, WishlistItem, UserProfile, User
 
 
 # Home Page (Product List)
@@ -47,7 +45,7 @@ class ProductDetailView(DetailView):
         return context
 
 
-# User Registration View (updated with additional fields)
+# User Registration View
 def user_register(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -61,6 +59,7 @@ def user_register(request):
         city = request.POST.get('city')
         state = request.POST.get('state')
         pincode = request.POST.get('pincode')
+        user_type = request.POST.get('user_type')  # 'customer' or 'seller'
 
         # Check if passwords match
         if password != confirm_password:
@@ -79,9 +78,11 @@ def user_register(request):
         user = User.objects.create_user(username=username, email=email, password=password)
         user.first_name = first_name
         user.last_name = last_name
+        user.is_customer = True if user_type == 'customer' else False
+        user.is_seller = True if user_type == 'seller' else False
         user.save()
 
-        # Create the user profile
+        # Create the user profile and set the user_type
         user_profile = UserProfile.objects.create(
             user=user,
             phone_number=phone_number,
@@ -89,8 +90,11 @@ def user_register(request):
             city=city,
             state=state,
             pincode=pincode,
-            user_type='customer'  # Assuming default user type is customer
+            user_type=user_type
         )
+
+        if user_type == 'seller':
+            Seller.objects.create(user_profile=user_profile, is_verified=False)
 
         messages.success(request, 'Registration successful! You can now log in.')
         return redirect('login')
@@ -98,7 +102,7 @@ def user_register(request):
     return render(request, 'flipkart_app/register.html')
 
 
-# User Login View (Simplified)
+# User Login View (Supports role-based redirection)
 def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -107,7 +111,11 @@ def user_login(request):
 
         if user is not None:
             login(request, user)
-            return redirect('home')
+            # Redirect based on role
+            if user.is_seller:
+                return redirect('seller_dashboard')  # Redirect to seller dashboard
+            else:
+                return redirect('home')  # Redirect to customer profile
         else:
             messages.error(request, 'Invalid username or password.')
             return redirect('login')
@@ -119,7 +127,7 @@ def user_login(request):
 @login_required
 def user_logout(request):
     logout(request)
-    return redirect('home')
+    return redirect('login')
 
 
 # View Cart
@@ -278,4 +286,3 @@ def seller_dashboard(request):
     orders = Order.objects.filter(items__product__seller=seller).distinct()
 
     return render(request, 'flipkart_app/seller_dashboard.html', {'orders': orders})
-

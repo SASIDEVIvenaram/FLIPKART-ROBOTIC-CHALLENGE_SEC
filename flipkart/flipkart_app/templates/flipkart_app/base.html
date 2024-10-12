@@ -88,7 +88,7 @@
                 <!-- Navigation Links -->
                 <div class="hidden md:flex items-center space-x-6">
                     {% if user.is_authenticated %}
-                        <a href="{% url 'profile' %}" class="nav-link text-gray-700 hover:text-indigo-600">Dashboard</a>
+                        <a href="{% url 'home' %}" class="nav-link text-gray-700 hover:text-indigo-600">Dashboard</a>
                         <a href="{% url 'cart' %}" class="relative nav-link text-gray-700 hover:text-indigo-600 group">
                             <i class="fas fa-shopping-cart"></i>
                             <span class="absolute -top-2 -right-2 bg-indigo-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs group-hover:bg-indigo-700 transition-colors duration-300">{{ user.cart.items.count }}</span>

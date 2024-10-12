@@ -123,7 +123,7 @@
                         <div class="border-b last:border-b-0 py-3">
                             <div class="flex justify-between">
                                 <span class="font-medium">Order #{{ order.id }}</span>
-                                <span class="text-sm {{ order.status == 'delivered' ? 'text-green-500' : 'text-blue-500' }}">
+                                <span class="text-sm {% if order.status == 'delivered' %}text-green-500{% else %}text-blue-500{% endif %}">
                                     {{ order.status|title }}
                                 </span>
                             </div>

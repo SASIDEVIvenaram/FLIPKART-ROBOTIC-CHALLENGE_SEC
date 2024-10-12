@@ -26,6 +26,16 @@
             <form class="mt-8 space-y-6" action="{% url 'register' %}" method="POST">
                 {% csrf_token %}
                 
+                <!-- User Type -->
+                <div>
+                    <label for="user_type" class="sr-only">User Type</label>
+                    <select id="user_type" name="user_type" required
+                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm">
+                        <option value="customer">Customer</option>
+                        <option value="seller">Seller</option>
+                    </select>
+                </div>
+
                 <!-- Username -->
                 <div>
                     <label for="username" class="sr-only">Username</label>
@@ -61,7 +71,7 @@
                 <!-- Password -->
                 <div>
                     <label for="password" class="sr-only">Password</label>
-                    <input id="password" name="password" type="password" required 
+                    <input id="password" name="password" type="password" required minlength="8"
                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                            placeholder="Password">
                 </div>
@@ -69,7 +79,7 @@
                 <!-- Confirm Password -->
                 <div>
                     <label for="confirm_password" class="sr-only">Confirm Password</label>
-                    <input id="confirm_password" name="confirm_password" type="password" required 
+                    <input id="confirm_password" name="confirm_password" type="password" required minlength="8"
                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                            placeholder="Confirm Password">
                 </div>
@@ -77,15 +87,16 @@
                 <!-- Phone Number -->
                 <div>
                     <label for="phone_number" class="sr-only">Phone Number</label>
-                    <input id="phone_number" name="phone_number" type="text" 
+                    <input id="phone_number" name="phone_number" type="tel" required
+                           pattern="[0-9]{10}" 
                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                           placeholder="Phone Number">
+                           placeholder="Phone Number (10 digits)">
                 </div>
 
                 <!-- Address -->
                 <div>
                     <label for="address" class="sr-only">Address</label>
-                    <textarea id="address" name="address" rows="3" 
+                    <textarea id="address" name="address" rows="3" required
                               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                               placeholder="Address"></textarea>
                 </div>
@@ -93,7 +104,7 @@
                 <!-- City -->
                 <div>
                     <label for="city" class="sr-only">City</label>
-                    <input id="city" name="city" type="text" 
+                    <input id="city" name="city" type="text" required
                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                            placeholder="City">
                 </div>
@@ -101,7 +112,7 @@
                 <!-- State -->
                 <div>
                     <label for="state" class="sr-only">State</label>
-                    <input id="state" name="state" type="text" 
+                    <input id="state" name="state" type="text" required
                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                            placeholder="State">
                 </div>
@@ -109,9 +120,9 @@
                 <!-- Pincode -->
                 <div>
                     <label for="pincode" class="sr-only">Pincode</label>
-                    <input id="pincode" name="pincode" type="text" 
+                    <input id="pincode" name="pincode" type="text" required minlength="6" maxlength="6"
                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                           placeholder="Pincode">
+                           placeholder="Pincode (6 digits)">
                 </div>
 
                 <!-- Display error messages, if any -->

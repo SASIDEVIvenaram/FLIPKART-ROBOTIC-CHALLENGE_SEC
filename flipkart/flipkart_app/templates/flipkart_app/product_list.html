@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'flipkart_app/base.html' %}
 
 {% block title %}FlipIQ - Browse Products{% endblock %}
 
@@ -36,6 +36,23 @@
                     </div>
                 </div>
 
+                <!-- Sort Options in the filter form -->
+                <div class="mb-4">
+                    <h3 class="font-medium mb-2">Sort by</h3>
+                    <select name="sort" class="w-full p-2 border rounded">
+                        <option value="">Select</option>
+                        <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>
+                            Price: Low to High
+                        </option>
+                        <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>
+                            Price: High to Low
+                        </option>
+                        <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>
+                            Newest First
+                        </option>
+                    </select>
+                </div>
+
                 <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition duration-300">
                     Apply Filters
                 </button>
@@ -44,23 +61,6 @@
 
         <!-- Product Grid -->
         <div class="flex-1">
-            <!-- Sort Options -->
-            <div class="flex justify-between items-center mb-4">
-                <h1 class="text-2xl font-semibold">Products</h1>
-                <select name="sort" class="p-2 border rounded" onchange="this.form.submit()">
-                    <option value="">Sort by</option>
-                    <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>
-                        Price: Low to High
-                    </option>
-                    <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>
-                        Price: High to Low
-                    </option>
-                    <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>
-                        Newest First
-                    </option>
-                </select>
-            </div>
-
             <!-- Products Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for product in products %}
@@ -97,8 +97,8 @@
             <div class="mt-8 flex justify-center">
                 <div class="flex space-x-2">
                     {% if page_obj.has_previous %}
-                        <a href="?page=1" class="px-3 py-1 border rounded hover:bg-gray-100">&laquo; First</a>
-                        <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-100">Previous</a>
+                        <a href="?{% query_string request 'page=1' %}" class="px-3 py-1 border rounded hover:bg-gray-100">&laquo; First</a>
+                        <a href="?{% query_string request 'page=' page_obj.previous_page_number %}" class="px-3 py-1 border rounded hover:bg-gray-100">Previous</a>
                     {% endif %}
 
                     <span class="px-3 py-1 border rounded bg-blue-500 text-white">
@@ -106,8 +106,8 @@
                     </span>
 
                     {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 border rounded hover:bg-gray-100">Next</a>
-                        <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 border rounded hover:bg-gray-100">Last &raquo;</a>
+                        <a href="?{% query_string request 'page=' page_obj.next_page_number %}" class="px-3 py-1 border rounded hover:bg-gray-100">Next</a>
+                        <a href="?{% query_string request 'page=' page_obj.paginator.num_pages %}" class="px-3 py-1 border rounded hover:bg-gray-100">Last &raquo;</a>
                     {% endif %}
                 </div>
             </div>
