@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.contrib.auth import login, logout, authenticate
 from django.views.generic import ListView, DetailView
 from .models import Product, Category, Cart, CartItem, Order, OrderItem, Review, Seller, WishlistItem, UserProfile, User
-
+from django.http import JsonResponse
 
 class HomeView(ListView):
     model = Product
@@ -146,18 +146,24 @@ def add_to_cart(request, product_id):
 def update_cart(request, item_id):
     cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
     action = request.POST.get('action')
+
     if action == 'increase':
         cart_item.quantity += 1
+        cart_item.save()
     elif action == 'decrease':
         cart_item.quantity -= 1
-        if cart_item.quantity == 0:
-            cart_item.delete()
+        if cart_item.quantity <= 0:
+            cart_item.delete()  # Delete if quantity is 0 or less
+        else:
+            cart_item.save()  # Save the decreased quantity
     elif action == 'remove':
-        cart_item.delete()
+        cart_item.delete()  # Remove the cart item
     else:
         messages.error(request, 'Invalid action.')
-    cart_item.save()
+
     return redirect('cart')
+
+
 
 
 @login_required
@@ -238,15 +244,13 @@ def wishlist(request):
 def add_to_wishlist(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     WishlistItem.objects.get_or_create(user=request.user, product=product)
-    messages.success(request, f'{product.name} added to your wishlist.')
-    return redirect('wishlist')
+    return JsonResponse({'added': True}, status=200)  # Valid JSON response
 
 @login_required
 def remove_from_wishlist(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     WishlistItem.objects.filter(user=request.user, product=product).delete()
-    messages.success(request, f'{product.name} removed from your wishlist.')
-    return redirect('wishlist')
+    return JsonResponse({'removed': True}, status=200)  # Valid JSON response
 
 @login_required
 def seller_dashboard(request):

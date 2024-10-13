@@ -37,9 +37,11 @@ urlpatterns = [
     path('seller-dashboard/', views.seller_dashboard, name='seller_dashboard'),  # Seller dashboard page
 
     # Wishlist Management
-    path('wishlist/', views.wishlist, name='wishlist'),  # View the wishlist
-    path('add-to-wishlist/<int:product_id>/', views.add_to_wishlist, name='add_to_wishlist'),  # Add to wishlist
-    path('remove-from-wishlist/<int:product_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),  # Remove from wishlist
+    path('add-to-wishlist/<int:product_id>/', views.add_to_wishlist, name='add_to_wishlist'),
+    path('remove-from-wishlist/<int:product_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),
+
+    # Wishlist page
+    path('wishlist/', views.wishlist, name='wishlist'),
     path('track-order/<int:order_id>/', views.track_order, name='track_order'),
     path('cancel-order/<int:order_id>/', views.cancel_order, name='cancel_order'),
 
