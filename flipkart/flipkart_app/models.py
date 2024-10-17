@@ -3,11 +3,16 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
 
+# Custom User model with flags for seller and customer roles
 class User(AbstractUser):
     is_customer = models.BooleanField(default=False)
     is_seller = models.BooleanField(default=False)
 
+    def __str__(self):
+        return self.username
 
+
+# User Profile model, which can be linked to either customers or sellers
 class UserProfile(models.Model):
     USER_TYPE_CHOICES = [
         ('customer', 'Customer'),
@@ -27,6 +32,7 @@ class UserProfile(models.Model):
         return f"{self.user.username}'s Profile ({self.user_type})"
 
 
+# Customer model with loyalty points feature
 class Customer(models.Model):
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='customer')
     loyalty_points = models.PositiveIntegerField(default=0)
@@ -34,6 +40,8 @@ class Customer(models.Model):
     def __str__(self):
         return f"Customer: {self.user_profile.user.username}"
 
+
+# Seller model with additional business-specific fields
 class Seller(models.Model):
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='seller')
     company_name = models.CharField(max_length=200)
@@ -46,6 +54,7 @@ class Seller(models.Model):
         return f"{self.company_name} ({self.user_profile.user.username})"
 
 
+# Category model to manage product categories
 class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -59,6 +68,7 @@ class Category(models.Model):
         return self.name
 
 
+# Product model with handling for packing status, discounts, and soft deletion
 class Product(models.Model):
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='products')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
@@ -80,6 +90,20 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name} - {self.category.name}"
 
+
+# Product Variant model for managing variations like color or size
+class ProductVariant(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
+    variant_name = models.CharField(max_length=50)
+    variant_value = models.CharField(max_length=50)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.product.name} - {self.variant_name}: {self.variant_value}"
+
+
+# Cart model for managing user's cart
 class Cart(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cart')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -92,6 +116,7 @@ class Cart(models.Model):
         return f"{self.user.username}'s Cart"
 
 
+# CartItem model to store products in the cart
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -104,6 +129,7 @@ class CartItem(models.Model):
         return f"{self.quantity} x {self.product.name}"
 
 
+# Order model for managing order data and status
 class Order(models.Model):
     STATUS_PENDING = 'pending'
     STATUS_PROCESSING = 'processing'
@@ -132,6 +158,7 @@ class Order(models.Model):
         return f"Order {self.id} - {self.user.username}"
 
 
+# OrderItem model to store products associated with an order
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -145,6 +172,7 @@ class OrderItem(models.Model):
         return f"{self.quantity} x {self.product.name}"
 
 
+# Review model for product reviews
 class Review(models.Model):
     product = models.ForeignKey(Product, related_name='reviews', on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -155,6 +183,8 @@ class Review(models.Model):
     def __str__(self):
         return f"{self.user.username}'s review on {self.product.name}"
 
+
+# Wishlist model to store wishlist items for users
 class WishlistItem(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wishlist_items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -163,6 +193,8 @@ class WishlistItem(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.product.name}"
 
+
+# Registration model to track user registration details
 class Registration(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='registration')
     date_registered = models.DateTimeField(auto_now_add=True)

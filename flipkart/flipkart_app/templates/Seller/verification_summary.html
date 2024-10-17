@@ -1,0 +1,24 @@
+{% extends 'flipkart_app/base.html' %}
+
+{% block title %}Verification Summary{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-2xl font-semibold mb-6">Verification Summary</h1>
+
+    <div class="bg-white rounded shadow p-4">
+        <h2 class="text-xl font-bold mb-4">Final Verification</h2>
+        <p>All checks have been completed successfully.</p>
+
+        <ul class="list-disc pl-6">
+            <li>Object Detection: {{ object_detection_status }}</li>
+            <li>Expiry & Brand Detection: {{ expiry_brand_status }}</li>
+            <li>Freshness Detection: {{ freshness_status }}</li>
+            <li>Product Count: {{ count_status }}</li>
+            <li>Weight Verification: {{ weight_status }}</li>
+        </ul>
+        
+        <p class="mt-4 text-lg font-bold">The order is ready for shipment.</p>
+    </div>
+</div>
+{% endblock %}

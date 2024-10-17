@@ -1,0 +1,35 @@
+{% extends 'flipkart_app/base.html' %}
+
+{% block title %}Manage Products{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-2xl font-semibold mb-6">Manage Products</h1>
+
+    <a href="{% url 'add_product' %}" class="mb-4 inline-block px-4 py-2 bg-blue-500 text-white rounded">Add New Product</a>
+
+    <table class="table-auto w-full bg-white rounded shadow">
+        <thead>
+            <tr>
+                <th class="px-4 py-2">Product Name</th>
+                <th class="px-4 py-2">Price</th>
+                <th class="px-4 py-2">Stock</th>
+                <th class="px-4 py-2">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for product in products %}
+            <tr class="text-center border-t">
+                <td class="px-4 py-2">{{ product.name }}</td>
+                <td class="px-4 py-2">₹{{ product.price }}</td>
+                <td class="px-4 py-2">{{ product.stock }}</td>
+                <td class="px-4 py-2">
+                    <a href="{% url 'edit_product' product.id %}" class="text-blue-600">Edit</a>
+                    <a href="#" class="text-red-600">Delete</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

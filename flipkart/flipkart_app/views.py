@@ -6,7 +6,10 @@ from django.contrib.auth import login, logout, authenticate
 from django.views.generic import ListView, DetailView
 from .models import Product, Category, Cart, CartItem, Order, OrderItem, Review, Seller, WishlistItem, UserProfile, User
 from django.http import JsonResponse
+import torch
+from .ml_models import run_ml_model  # Assuming you have a module that handles ML models
 
+# Home View for both customers and sellers
 class HomeView(ListView):
     model = Product
     template_name = 'flipkart_app/home.html'
@@ -28,6 +31,7 @@ class HomeView(ListView):
         context['categories'] = Category.objects.all()
         return context
 
+# Product Detail View
 class ProductDetailView(DetailView):
     model = Product
     template_name = 'flipkart_app/product_detail.html'
@@ -41,6 +45,7 @@ class ProductDetailView(DetailView):
         context['reviews'] = Review.objects.filter(product=self.object)
         return context
 
+# User registration for both customers and sellers
 def user_register(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -54,7 +59,7 @@ def user_register(request):
         city = request.POST.get('city')
         state = request.POST.get('state')
         pincode = request.POST.get('pincode')
-        user_type = request.POST.get('user_type')  
+        user_type = request.POST.get('user_type')  # 'customer' or 'seller'
 
         if password != confirm_password:
             messages.error(request, 'Passwords do not match.')
@@ -70,8 +75,8 @@ def user_register(request):
         user = User.objects.create_user(username=username, email=email, password=password)
         user.first_name = first_name
         user.last_name = last_name
-        user.is_customer = True if user_type == 'customer' else False
-        user.is_seller = True if user_type == 'seller' else False
+        user.is_customer = (user_type == 'customer')
+        user.is_seller = (user_type == 'seller')
         user.save()
 
         user_profile = UserProfile.objects.create(
@@ -92,7 +97,7 @@ def user_register(request):
 
     return render(request, 'flipkart_app/register.html')
 
-
+# User login
 def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -111,26 +116,21 @@ def user_login(request):
 
     return render(request, 'flipkart_app/login.html')
 
+# User logout
 @login_required
 def user_logout(request):
     logout(request)
     return redirect('login')
 
+# Cart details for customers
 @login_required
 def cart_detail(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
-    if created:
-        cart_items = []
-    else:
-        cart_items = cart.items.all()
-        
-    context = {
-        'cart': cart,
-        'cart_items': cart_items,
-    }
+    cart_items = cart.items.all() if not created else []
     
-    return render(request, 'flipkart_app/cart.html', context)
+    return render(request, 'flipkart_app/cart.html', {'cart': cart, 'cart_items': cart_items})
 
+# Add item to cart
 @login_required
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -142,6 +142,7 @@ def add_to_cart(request, product_id):
     messages.success(request, f'{product.name} added to cart.')
     return redirect('cart')
 
+# Update cart items (increase, decrease, remove)
 @login_required
 def update_cart(request, item_id):
     cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
@@ -153,19 +154,15 @@ def update_cart(request, item_id):
     elif action == 'decrease':
         cart_item.quantity -= 1
         if cart_item.quantity <= 0:
-            cart_item.delete()  # Delete if quantity is 0 or less
+            cart_item.delete()
         else:
-            cart_item.save()  # Save the decreased quantity
+            cart_item.save()
     elif action == 'remove':
-        cart_item.delete()  # Remove the cart item
-    else:
-        messages.error(request, 'Invalid action.')
+        cart_item.delete()
 
     return redirect('cart')
 
-
-
-
+# Checkout process for customers
 @login_required
 def checkout(request):
     cart = get_object_or_404(Cart, user=request.user)
@@ -203,16 +200,19 @@ def checkout(request):
 
     return render(request, 'flipkart_app/checkout.html', {'cart': cart})
 
+# Order confirmation
 @login_required
 def order_confirmation(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     return render(request, 'flipkart_app/order_confirmation.html', {'order': order})
 
+# Order history for customers
 @login_required
 def order_history(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'flipkart_app/order_history.html', {'orders': orders})
 
+# User profile view
 @login_required
 def profile(request):
     profile = request.user.profile
@@ -235,6 +235,7 @@ def profile(request):
             messages.error(request, 'Please fill in all fields.')
     return render(request, 'flipkart_app/user_profile.html', {'profile': profile})
 
+# Wishlist management
 @login_required
 def wishlist(request):
     wishlist_items = WishlistItem.objects.filter(user=request.user)
@@ -244,14 +245,15 @@ def wishlist(request):
 def add_to_wishlist(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     WishlistItem.objects.get_or_create(user=request.user, product=product)
-    return JsonResponse({'added': True}, status=200)  # Valid JSON response
+    return JsonResponse({'added': True}, status=200)
 
 @login_required
 def remove_from_wishlist(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     WishlistItem.objects.filter(user=request.user, product=product).delete()
-    return JsonResponse({'removed': True}, status=200)  # Valid JSON response
+    return JsonResponse({'removed': True}, status=200)
 
+# Seller Dashboard
 @login_required
 def seller_dashboard(request):
     if not request.user.is_seller:
@@ -263,65 +265,94 @@ def seller_dashboard(request):
 
     return render(request, 'flipkart_app/seller_dashboard.html', {'orders': orders})
 
-def home(request):
+# Manage products for sellers
+@login_required
+def manage_products(request):
+    if not request.user.is_seller:
+        messages.error(request, 'You do not have permission to manage products.')
+        return redirect('home')
+
+    products = Product.objects.filter(seller=request.user.seller)
+    return render(request, 'flipkart_app/manage_products.html', {'products': products})
+
+# Add or edit product for sellers
+@login_required
+def add_edit_product(request, product_id=None):
+    if not request.user.is_seller:
+        messages.error(request, 'You do not have permission to add or edit products.')
+        return redirect('home')
+
+    if product_id:
+        product = get_object_or_404(Product, id=product_id, seller=request.user.seller)
+    else:
+        product = None
+
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        category = get_object_or_404(Category, id=request.POST['category'])
+        description = request.POST.get('description')
+        price = request.POST.get('price')
+        stock = request.POST.get('stock')
+        discount_percentage = request.POST.get('discount_percentage')
+        image = request.FILES.get('image')
+
+        if product:
+            product.name = name
+            product.category = category
+            product.description = description
+            product.price = price
+            product.stock = stock
+            product.discount_percentage = discount_percentage
+            if image:
+                product.image = image
+            product.save()
+            messages.success(request, 'Product updated successfully.')
+        else:
+            Product.objects.create(
+                seller=request.user.seller,
+                category=category,
+                name=name,
+                description=description,
+                price=price,
+                stock=stock,
+                discount_percentage=discount_percentage,
+                image=image,
+            )
+            messages.success(request, 'Product added successfully.')
+
+        return redirect('manage_products')
+
     categories = Category.objects.all()
-    featured_products = Product.objects.filter(is_featured=True)  
-    context = {
-        'categories': categories,
-        'featured_products': featured_products,
-    }
-    return render(request, 'flipkart_app/home.html', context)
-from django.core.paginator import Paginator
-def product_list(request):
-    categories = Category.objects.all()
+    return render(request, 'flipkart_app/add_edit_product.html', {'product': product, 'categories': categories})
 
-    selected_categories = request.GET.getlist('category')
-    products = Product.objects.all()
-    if selected_categories:
-        products = products.filter(category__name__in=selected_categories)
+# Order processing with ML integration for sellers
+@login_required
+def order_processing(request):
+    if not request.user.is_seller:
+        messages.error(request, 'You do not have permission to process orders.')
+        return redirect('home')
 
-    min_price = request.GET.get('min_price')
-    max_price = request.GET.get('max_price')
-    if min_price:
-        products = products.filter(price__gte=min_price)
-    if max_price:
-        products = products.filter(price__lte=max_price)
+    orders = Order.objects.filter(items__product__seller=request.user.seller, status=Order.STATUS_PENDING)
+    return render(request, 'flipkart_app/order_processing.html', {'orders': orders})
 
-    sort_by = request.GET.get('sort')
-    if sort_by == 'price_low':
-        products = products.order_by('price')
-    elif sort_by == 'price_high':
-        products = products.order_by('-price')
-    elif sort_by == 'newest':
-        products = products.order_by('-created_at')
+# ML Integration Interface for order verification
+@login_required
+def ml_integration(request, order_id):
+    if not request.user.is_seller:
+        messages.error(request, 'You do not have permission to access ML verification.')
+        return redirect('home')
 
-    paginator = Paginator(products, 9)  
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    query_string = request.GET.copy()
-    if 'page' in query_string:
-        query_string.pop('page')
-    query_string = query_string.urlencode()
+    order = get_object_or_404(Order, id=order_id)
+    verification_result = run_ml_model(order)
+    return render(request, 'flipkart_app/verification_summary.html', {'order': order, 'result': verification_result})
 
-    context = {
-        'categories': categories,
-        'products': page_obj,
-        'selected_categories': selected_categories,
-        'min_price': min_price,
-        'max_price': max_price,
-        'sort_by': sort_by,
-        'query_string': query_string
-    }
-    return render(request, 'flipkart_app/product_list.html', context)
-
-
+# Order tracking for customers
+@login_required
 def track_order(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
-    context = {
-        'order': order,
-    }
-    return render(request, 'flipkart_app/track_order.html', context)
+    return render(request, 'flipkart_app/track_order.html', {'order': order})
 
+# Cancel order for customers
 @login_required
 def cancel_order(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
@@ -333,4 +364,4 @@ def cancel_order(request, order_id):
         order.save()
         messages.success(request, 'Your order has been cancelled.')
 
-    return redirect('order_history')  
+    return redirect('order_history')

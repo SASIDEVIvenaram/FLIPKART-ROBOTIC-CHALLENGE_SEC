@@ -1,0 +1,14 @@
+{% extends 'flipkart_app/base.html' %}
+
+{% block title %}Weight Verification{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-2xl font-semibold mb-6">Weight Verification</h1>
+
+    <div class="bg-white rounded shadow p-4">
+        <h2 class="text-xl font-bold mb-4">Weight Verification</h2>
+        <p>The weight of the items is {{ weight }} kg. Expected weight: {{ expected_weight }} kg.</p>
+    </div>
+</div>
+{% endblock %}
